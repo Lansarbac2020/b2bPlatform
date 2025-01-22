@@ -1,12 +1,21 @@
 import { Router } from "express";
 import passport from "passport";
 import { config } from "../config/app.config";
-import { googleLoginCallback } from "../controllers/auth.controller";
+import { googleLoginCallback, loginUserController, logOutController, registerUserController } from "../controllers/auth.controller";
 
 
 const failureUrl=`${config.FRONTEND_GOOGLE_CALLBACK_URL}?status=failure`;
 
 const authRoutes= Router();
+
+//register routes
+
+authRoutes.post('/register',registerUserController);
+//login
+authRoutes.post('/login',loginUserController);
+//lougout
+authRoutes.post('/logout',logOutController);
+
 
 // Authentication routes
 authRoutes.get(
