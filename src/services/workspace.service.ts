@@ -57,3 +57,115 @@ export const createWorkspaceService = async (
     workspace,
   };
 };
+
+//********************************
+// GET ALL WORKSPACE
+//**************** **************/
+export const getAllWorkspaceUserService = async (userId: string) => {
+    const memberships = await MemberModel.find({ userId })
+    .populate("workspaceId")
+    .select("-password")
+    .exec();
+
+  // Extract workspace details from memberships
+  const workspaces = memberships.map((membership) => membership.workspaceId);
+
+  return { workspaces };
+}
+
+//****************************************************************
+// get WORKSPACE by ID service
+//****************************************************************
+export const getWorkspaceByIdService = async (workspaceId: string) => {
+    const workspace = await WorkspaceModel.findById(workspaceId);
+  
+    if (!workspace) {
+      throw new NotFoundException("Workspace not found");
+    }
+  
+    const members = await MemberModel.find({
+      workspaceId,
+    }).populate("role");
+  
+    const workspaceWithMembers = {
+      ...workspace.toObject(),
+      members,
+    };
+  
+    return {
+      workspace: workspaceWithMembers,
+    };
+  };
+
+  //get all members of a workspace
+  
+export const getWorkspaceMembersService = async (workspaceId: string) => {
+    // Fetch all members of the workspace
+  
+    const members = await MemberModel.find({
+      workspaceId,
+    })
+      .populate("userId", "name email profilePicture -password")
+      .populate("role", "name");
+  
+    const roles = await RoleModel.find({}, { name: 1, _id: 1 })
+      .select("-permission")
+      .lean();
+  
+    return { members, roles };
+  };
+
+  export const getWorkspaceAnalyticsService = async (workspaceId: string) => {
+    const currentDate= new Date();
+    const totalTasks = await TaskModel.countDocuments({ 
+        workspaceId: workspaceId,
+     });
+     const overDueTasks = await TaskModel.countDocuments({
+        workspaceId: workspaceId,
+        dueDate:{$lt: currentDate },
+        status: {$ne: TaskStatusEnum.DONE},
+     });
+     const completedTasks = await TaskModel.countDocuments({
+        workspaceId: workspaceId,
+        status: TaskStatusEnum.DONE,
+     });
+     const analytics={
+            totalTasks,
+            overDueTasks,
+            completedTasks,
+     };
+
+     return {analytics};
+  }
+
+  export const changeMemberService= async(
+    workspaceId: string,
+    memberId: string,
+    roleId: string
+  )=>{
+    
+  const workspace = await WorkspaceModel.findById(workspaceId);
+
+    if (!workspace) {
+        throw new NotFoundException("Workspace not found");
+    }
+
+    const role = await RoleModel.findById(roleId);
+    if (!role) {
+        throw new NotFoundException("Role not found");
+    }
+
+    const member = await MemberModel.findOne({ 
+     userId: memberId, 
+     workspaceId: workspaceId
+    });
+
+    if (!member) {
+        throw new NotFoundException("Member not found in the workspace");
+    }
+
+    member.role = role;
+    await member.save();
+
+    return { member };
+  };
