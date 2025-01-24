@@ -8,6 +8,7 @@ import { BadRequestException, NotFoundException } from "../utils/appError";
 import TaskModel from "../models/task.model";
 import { TaskStatusEnum } from "../enums/task.enum";
 import ProjectModel from "../models/project.model";
+import exp from "constants";
 
 //********************************
 // CREATE NEW WORKSPACE
@@ -139,33 +140,121 @@ export const getWorkspaceMembersService = async (workspaceId: string) => {
   }
 
   export const changeMemberService= async(
-    workspaceId: string,
-    memberId: string,
-    roleId: string
-  )=>{
-    
+  workspaceId: string,
+  memberId: string,
+  roleId: string
+) => {
   const workspace = await WorkspaceModel.findById(workspaceId);
+  if (!workspace) {
+    throw new NotFoundException("Workspace not found");
+  }
 
+  const role = await RoleModel.findById(roleId);
+  if (!role) {
+    throw new NotFoundException("Role not found");
+  }
+
+  const member = await MemberModel.findOne({
+    userId: memberId,
+    workspaceId: workspaceId,
+  });
+
+  if (!member) {
+    throw new Error("Member not found in the workspace");
+  }
+
+  member.role = role;
+  await member.save();
+
+  return {
+    member,
+  };
+  };
+
+  // update workspace details
+  export const updateWorkspaceByIdService = async (
+    workspaceId: string,
+    name: string,
+    description?: string
+  ) => {
+    const workspace = await WorkspaceModel.findById(workspaceId);
     if (!workspace) {
+      throw new NotFoundException("Workspace not found");
+    }
+  
+    // Update the workspace details
+    workspace.name = name || workspace.name;
+    workspace.description = description || workspace.description;
+    await workspace.save();
+  
+    return {
+      workspace,
+    };
+  };
+
+  // delete workspace
+
+  export const deleteWorkspaceService = async (
+    workspaceId: string,
+    userId: string
+  ) => {
+    const session = await mongoose.startSession();
+    session.startTransaction();
+  
+    try {
+      const workspace = await WorkspaceModel.findById(workspaceId).session(
+        session
+      );
+      if (!workspace) {
         throw new NotFoundException("Workspace not found");
+      }
+  
+      // Check if the user owns the workspace
+      if (workspace.owner.toString() !== userId) {
+        throw new BadRequestException(
+          "You are not authorized to delete this workspace"
+        );
+      }
+  
+      const user = await UserModel.findById(userId).session(session);
+      if (!user) {
+        throw new NotFoundException("User not found");
+      }
+  
+      await ProjectModel.deleteMany({ workspace: workspace._id }).session(
+        session
+      );
+      await TaskModel.deleteMany({ workspace: workspace._id }).session(session);
+  
+      await MemberModel.deleteMany({
+        workspaceId: workspace._id,
+      }).session(session);
+  
+      // Update the user's currentWorkspace if it matches the deleted workspace
+      if (user?.currentWorkspace?.equals(workspaceId)) {
+        const memberWorkspace = await MemberModel.findOne({ userId }).session(
+          session
+        );
+        // Update the user's currentWorkspace
+        user.currentWorkspace = memberWorkspace
+          ? memberWorkspace.workspaceId
+          : null;
+  
+        await user.save({ session });
+      }
+  
+      await workspace.deleteOne({ session });
+  
+      await session.commitTransaction();
+  
+      session.endSession();
+  
+      return {
+        currentWorkspace: user.currentWorkspace,
+      };
+    } catch (error) {
+      await session.abortTransaction();
+      session.endSession();
+      throw error;
     }
-
-    const role = await RoleModel.findById(roleId);
-    if (!role) {
-        throw new NotFoundException("Role not found");
-    }
-
-    const member = await MemberModel.findOne({ 
-     userId: memberId, 
-     workspaceId: workspaceId
-    });
-
-    if (!member) {
-        throw new NotFoundException("Member not found in the workspace");
-    }
-
-    member.role = role;
-    await member.save();
-
-    return { member };
   };
