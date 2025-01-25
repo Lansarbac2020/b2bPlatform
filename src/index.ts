@@ -20,6 +20,7 @@ import isAuthenticated from './middlewares/isAuthenticated.middleware';
 import workspaceRoutes from './routes/workspace.route';
 import memberRoutes from './routes/member.route';
 import projectRoutes from './routes/project.route';
+import taskRoutes from './routes/task.route';
 
 const app = express();
 const BASE_PATH = config.BASE_PATH;
@@ -75,7 +76,8 @@ app.use(`${BASE_PATH}/member`, isAuthenticated,memberRoutes)
 ;
 app.use(`${BASE_PATH}/project`, isAuthenticated,projectRoutes)
 ;
-
+app.use(`${BASE_PATH}/task`, isAuthenticated,taskRoutes)
+;
 app.use(errorHandler);
 app.listen(config.PORT, async() => {
     console.log(`Server is running on port ${config.PORT} in ${config.NODE_ENV}`);

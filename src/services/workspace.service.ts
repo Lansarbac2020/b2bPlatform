@@ -117,27 +117,31 @@ export const getWorkspaceMembersService = async (workspaceId: string) => {
   };
 
   export const getWorkspaceAnalyticsService = async (workspaceId: string) => {
-    const currentDate= new Date();
-    const totalTasks = await TaskModel.countDocuments({ 
-        workspaceId: workspaceId,
-     });
-     const overDueTasks = await TaskModel.countDocuments({
-        workspaceId: workspaceId,
-        dueDate:{$lt: currentDate },
-        status: {$ne: TaskStatusEnum.DONE},
-     });
-     const completedTasks = await TaskModel.countDocuments({
-        workspaceId: workspaceId,
-        status: TaskStatusEnum.DONE,
-     });
-     const analytics={
-            totalTasks,
-            overDueTasks,
-            completedTasks,
-     };
-
-     return {analytics};
-  }
+    const currentDate = new Date();
+  
+    const totalTasks = await TaskModel.countDocuments({
+      workspace: workspaceId,
+    });
+  
+    const overdueTasks = await TaskModel.countDocuments({
+      workspace: workspaceId,
+      dueDate: { $lt: currentDate },
+      status: { $ne: TaskStatusEnum.DONE },
+    });
+  
+    const completedTasks = await TaskModel.countDocuments({
+      workspace: workspaceId,
+      status: TaskStatusEnum.DONE,
+    });
+  
+    const analytics = {
+      totalTasks,
+      overdueTasks,
+      completedTasks,
+    };
+  
+    return { analytics };
+  };
 
   export const changeMemberService= async(
   workspaceId: string,
