@@ -15,7 +15,7 @@ const appConfig = () => ({
 
   GOOGLE_CLIENT_ID: getEnv("GOOGLE_CLIENT_ID", "228067421877-gvkmtljjbld8cmmsrk692r1n0n4abdu7.apps.googleusercontent.com"),
   GOOGLE_CLIENT_SECRET: getEnv("GOOGLE_CLIENT_SECRET","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"),
-  GOOGLE_CALLBACK_URL: getEnv("GOOGLE_CALLBACK_URL","http://localhost:5000/api/auth/google/callback"),
+  GOOGLE_CALLBACK_URL: getEnv("GOOGLE_CALLBACK_URL","https://api-effisyncrea.onrender.com/api/auth/google/callback"),
 
   FRONTEND_ORIGIN: getEnv("FRONTEND_ORIGIN", "https://effisyncrea.vercel.app/"),
   FRONTEND_GOOGLE_CALLBACK_URL: getEnv("FRONTEND_GOOGLE_CALLBACK_URL","https://effisyncrea.vercel.app/google/oauth/callback"),
