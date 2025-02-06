@@ -21,8 +21,9 @@ const defaults: SignOptions={
 //     throw new Error('Invalid JWT_EXPIRES_IN configuration');
 // }
 
+// In your JWT utility file
 export const accessTokenSignOptions: SignOptsAndSecret = {
-    expiresIn: Number(config.JWT_EXPIRES_IN),  // Converts "86400" to 86400
+    expiresIn: config.JWT_EXPIRES_IN,  // Keep as string/number from config
     secret: config.JWT_SECRET,
   };
   
