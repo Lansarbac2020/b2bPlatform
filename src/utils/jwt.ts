@@ -1,4 +1,4 @@
-import jwt, { SignOptions } from "jsonwebtoken";
+import jwt, { SignOptions, VerifyOptions } from "jsonwebtoken";
 import { UserDocument } from "../models/user.model"
 import { config } from "../config/app.config";
 
@@ -22,10 +22,18 @@ const defaults: SignOptions={
 // }
 
 // In your JWT utility file
+const expiresInSeconds = 86400;
+if (isNaN(expiresInSeconds)) {
+  console.error('Invalid JWT_EXPIRES_IN configuration');
+
+  console.log(expiresInSeconds);
+}
+console.log(expiresInSeconds);
 export const accessTokenSignOptions: SignOptsAndSecret = {
-    expiresIn: config.JWT_EXPIRES_IN,  // Keep as string/number from config
-    secret: config.JWT_SECRET,
-  };
+  expiresIn: expiresInSeconds,
+  secret: config.JWT_SECRET,
+};
+
   
 
 
@@ -38,3 +46,20 @@ export const signJwtToken =(
         ...defaults,...opts
     });
 }
+export const verifyJwtToken = <TPayload extends object = AccessTPayload>(
+    token: string,
+    options?: VerifyOptions & { secret: string }
+  ) => {
+    try {
+      const { secret = config.JWT_SECRET, ...opts } = options || {};
+      const payload = jwt.verify(token, secret, {
+        ...defaults,
+        ...opts,
+      }) as TPayload;
+      return { payload };
+    } catch (err: any) {
+      return {
+        error: err.message,
+      };
+    }
+  };
