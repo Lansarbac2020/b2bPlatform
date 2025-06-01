@@ -51,9 +51,21 @@ npm start
 Create a `.env` file in the root directory and set up the following variables as needed:
 
 ```
-PORT=3000
-DATABASE_URL=your_database_url
-JWT_SECRET=your_secret_key
+PORT=
+NODE_ENV=
+
+MONGO_URI=
+JWT_SECRET=
+
+JWT_EXPIRES_IN=1d
+
+SESSION_SECRET=
+SESSION_EXPIRES_IN=
+GOOGLE_CLIENT_ID=
+GOOGLE_CLIENT_SECRET=
+GOOGLE_CALLBACK_URL=
+FRONTEND_ORIGIN=
+FRONTEND_GOOGLE_CALLBACK_URL=
 ```
 
 ## Contribution
